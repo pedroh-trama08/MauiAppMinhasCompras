@@ -1,3 +1,4 @@
+using MauiAppMinhasCompras.Helpers;
 using MauiAppMinhasCompras.Models;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -139,5 +140,43 @@ public partial class ListaProduto : ContentPage
 		{
 			lst_produto.IsRefreshing = false;
 		}
+    }
+
+    private async void txt_search_cat_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        try
+        {
+            string categoria = e.NewTextValue;
+
+            lst_produto.IsRefreshing = true;
+
+            lista.Clear();
+
+            List<Produto> tmp = await App.Db.SearchByCategoria(categoria);
+
+            tmp.ForEach(i => lista.Add(i));
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
+        }
+    }
+
+    private async void ToolbarItem_Clicked_2(object sender, EventArgs e)
+    {
+        try
+        {
+			var grupos = lista.GroupBy(i => i.Categoria).Select(g => new RelatorioCategoria
+			{
+				Categoria = g.Key,
+				Total = g.Sum(p => p.Total)
+			}).ToList();
+
+			await Navigation.PushAsync(new Views.RelatorioCategoriaPage(grupos));	
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ops", ex.Message, "OK");
+        }
     }
 }
